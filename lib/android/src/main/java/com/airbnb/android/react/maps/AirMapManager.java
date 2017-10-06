@@ -2,6 +2,10 @@ package com.airbnb.android.react.maps;
 
 import android.view.View;
 
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -32,6 +36,12 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   private static final int FIT_TO_ELEMENTS = 3;
   private static final int FIT_TO_SUPPLIED_MARKERS = 4;
   private static final int FIT_TO_COORDINATES = 5;
+
+  private static final int CLEAR_POLY = 6;
+  private static final int CREATE_POLY = 7;
+  private static final int ADD_POINT_TO_POLY = 8;
+  private static final int ADD_POINTS_TO_POLY = 9;
+  private static final int REMOVE_POINTS_FROM_POLY = 10;
 
   private final Map<String, Integer> MAP_TYPES = MapBuilder.of(
       "standard", GoogleMap.MAP_TYPE_NORMAL,
@@ -235,6 +245,30 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
       case FIT_TO_COORDINATES:
         view.fitToCoordinates(args.getArray(0), args.getMap(1), args.getBoolean(2));
         break;
+      case CLEAR_POLY:
+        view.clearPoly(args.getString(0));
+        break;
+      case CREATE_POLY:
+        view.createPoly(args.getString(0), args.getString(1), args.getInt(2));
+        break;
+      case ADD_POINT_TO_POLY:
+        region = args.getMap(1);
+        lng = region.getDouble("longitude");
+        lat = region.getDouble("latitude");
+        view.addPointToPoly(args.getString(0), new LatLng(lat, lng));
+        break;
+      case ADD_POINTS_TO_POLY:
+        ReadableArray arr = args.getArray(1);
+        List<LatLng> points = new ArrayList<>();
+        for (int i = 0; i < arr.size(); i++) {
+          ReadableMap map = arr.getMap(i);
+          points.add(i, new LatLng(map.getDouble("latitude"), map.getDouble("longitude")));
+        }
+        view.addPointsToPoly(args.getString(0), points);
+        break;
+      case REMOVE_POINTS_FROM_POLY:
+        view.removePointsFromPoly(args.getString(0), args.getInt(1));
+        break;
     }
   }
 
@@ -270,6 +304,12 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
         "fitToElements", FIT_TO_ELEMENTS,
         "fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS,
         "fitToCoordinates", FIT_TO_COORDINATES
+        ,
+        "clearPoly", CLEAR_POLY,
+        "createPoly", CREATE_POLY,
+        "addPointToPoly", ADD_POINT_TO_POLY,
+        "addPointsToPoly", ADD_POINTS_TO_POLY,
+        "removePointsFromPoly", REMOVE_POINTS_FROM_POLY,
     );
   }
 

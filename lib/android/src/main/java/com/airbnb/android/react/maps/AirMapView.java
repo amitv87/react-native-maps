@@ -20,6 +20,10 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import com.google.android.gms.maps.model.RoundCap;
+import com.google.android.gms.maps.model.JointType;
+import com.google.android.gms.maps.model.PolylineOptions;
+
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -49,6 +53,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.util.Log;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
@@ -561,6 +566,120 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       );
       boundsToMove = null;
     }
+  }
+
+  private static final int MAX_POLYLINE_LENGTH = 100;
+  private final HashMap<String, Poly> polys = new HashMap<>();
+
+  private class Poly{
+    private List<LatLng> coordinates = new ArrayList<>();
+    private List<Polyline> polylines = new ArrayList<>();
+    private PolylineOptions polylineOptions = new PolylineOptions();
+
+    public Poly(int color, int width){
+      polylineOptions.color(color);
+      polylineOptions.width(width);
+      polylineOptions.endCap(new RoundCap());
+      polylineOptions.startCap(new RoundCap());
+      polylineOptions.jointType(JointType.ROUND);
+    }
+
+    private void newLine(){
+      polylines.add(map.addPolyline(polylineOptions));
+    }
+
+    private void checkMax(boolean render){
+      if(coordinates.size() >= MAX_POLYLINE_LENGTH){
+        if(render)
+          polylines.get(polylines.size() - 1).setPoints(coordinates);
+        LatLng last = coordinates.get(coordinates.size() - 1);
+        coordinates.clear();
+        coordinates.add(last);
+        newLine();
+      }
+    }
+
+    public void addPoint(LatLng coordinate){
+      checkMax(false);
+      if(polylines.size() == 0) newLine();
+      coordinates.add(coordinate);
+      polylines.get(polylines.size() - 1).setPoints(coordinates);
+    }
+
+    public void addPoints(List<LatLng> __coordinates){
+      checkMax(false);
+      if(polylines.size() == 0) newLine();
+      for(LatLng coordinate: __coordinates){
+        coordinates.add(coordinate);
+        checkMax(true);
+      }
+      if(coordinates.size() > 1)
+        polylines.get(polylines.size() - 1).setPoints(coordinates);
+    }
+
+    public void removePoints(int count){
+      int numRemovedPoints = 0;
+      int numPolylines = polylines.size() - 1;
+      for(int i = 0; i <= numPolylines; i++){
+        int index = numPolylines - i;
+        int numPointsToBeRemoved = count - numRemovedPoints;
+
+        Polyline polyline = polylines.get(index);
+        coordinates = polyline.getPoints();
+        if(coordinates.size() <= numPointsToBeRemoved){
+          numRemovedPoints += coordinates.size();
+          polyline.remove();
+          polylines.remove(index);
+          coordinates.clear();
+                      // Log.d("removePoints full", "index: " + index + ", numRemovedPoints: " + numRemovedPoints);
+        }
+        else{
+          coordinates = coordinates.subList(0, coordinates.size() - 1 - numPointsToBeRemoved);
+          numRemovedPoints += numPointsToBeRemoved;
+          polyline.setPoints(coordinates);
+                      // Log.d("removePoints partial", "index: " + index + ", numRemovedPoints: " + numRemovedPoints);
+        }
+        if(numRemovedPoints == count)
+          break;
+      }
+    }
+
+    public void clear(){
+      for(Polyline polyline : polylines)
+        polyline.remove();
+      polylines.clear();
+      coordinates.clear();
+    }
+  }
+
+  public void clearPoly(String key){
+    Poly poly = polys.get(key);
+    if(poly != null)
+      poly.clear();
+    polys.remove(key);
+  }
+
+  public void createPoly(String key, String color, int width){
+    if(polys.get(key) == null) polys.put(key, new Poly(Color.parseColor(color), width));
+  }
+
+  public void addPointToPoly(String key, LatLng coordinate){
+    Poly poly = polys.get(key);
+    if(poly != null){
+      poly.addPoint(coordinate);
+    }
+  }
+
+  public void addPointsToPoly(String key, List<LatLng> coordinates){
+    Poly poly = polys.get(key);
+    if(poly != null){
+      poly.addPoints(coordinates);
+    }
+  }
+
+  public void removePointsFromPoly(String key, int count){
+    Poly poly = polys.get(key);
+    if(poly != null) poly.removePoints(count);
   }
 
   public void animateToRegion(LatLngBounds bounds, int duration) {
