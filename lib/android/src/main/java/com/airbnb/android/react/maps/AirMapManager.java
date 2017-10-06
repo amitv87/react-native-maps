@@ -309,7 +309,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
         "createPoly", CREATE_POLY,
         "addPointToPoly", ADD_POINT_TO_POLY,
         "addPointsToPoly", ADD_POINTS_TO_POLY,
-        "removePointsFromPoly", REMOVE_POINTS_FROM_POLY,
+        "removePointsFromPoly", REMOVE_POINTS_FROM_POLY
     );
   }
 
