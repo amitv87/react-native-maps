@@ -298,19 +298,26 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   @Override
   @Nullable
   public Map<String, Integer> getCommandsMap() {
-    return MapBuilder.of(
-        "animateToRegion", ANIMATE_TO_REGION,
-        "animateToCoordinate", ANIMATE_TO_COORDINATE,
-        "fitToElements", FIT_TO_ELEMENTS,
-        "fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS,
-        "fitToCoordinates", FIT_TO_COORDINATES
-        ,
-        "clearPoly", CLEAR_POLY,
-        "createPoly", CREATE_POLY,
-        "addPointToPoly", ADD_POINT_TO_POLY,
-        "addPointsToPoly", ADD_POINTS_TO_POLY,
-        "removePointsFromPoly", REMOVE_POINTS_FROM_POLY
-    );
+    // return MapBuilder.of(
+    //     "animateToRegion", ANIMATE_TO_REGION,
+    //     "animateToCoordinate", ANIMATE_TO_COORDINATE,
+    //     "fitToElements", FIT_TO_ELEMENTS,
+    //     "fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS,
+    //     "fitToCoordinates", FIT_TO_COORDINATES
+    // );
+
+    return new HashMap<String, Integer>(){{
+      put("animateToRegion", ANIMATE_TO_REGION);
+      put("animateToCoordinate", ANIMATE_TO_COORDINATE);
+      put("fitToElements", FIT_TO_ELEMENTS);
+      put("fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS);
+      put("fitToCoordinates", FIT_TO_COORDINATES);
+      put("clearPoly", CLEAR_POLY);
+      put("createPoly", CREATE_POLY);
+      put("addPointToPoly", ADD_POINT_TO_POLY);
+      put("addPointsToPoly", ADD_POINTS_TO_POLY);
+      put("removePointsFromPoly", REMOVE_POINTS_FROM_POLY);
+    }};
   }
 
   @Override

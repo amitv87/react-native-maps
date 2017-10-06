@@ -22,6 +22,9 @@ class PolylineCreator extends React.Component {
   constructor(props) {
     super(props);
 
+    this.pkey = 'a';
+    this.points = [];
+
     this.state = {
       region: {
         latitude: LATITUDE,
@@ -43,25 +46,26 @@ class PolylineCreator extends React.Component {
   }
 
   onPanDrag(e) {
-    const { editing } = this.state;
-    if (!editing) {
-      this.setState({
-        editing: {
-          id: id++,
-          coordinates: [e.nativeEvent.coordinate],
-        },
-      });
-    } else {
-      this.setState({
-        editing: {
-          ...editing,
-          coordinates: [
-            ...editing.coordinates,
-            e.nativeEvent.coordinate,
-          ],
-        },
-      });
-    }
+    // const { editing } = this.state;
+    // if (!editing) {
+    //   this.setState({
+    //     editing: {
+    //       id: id++,
+    //       coordinates: [e.nativeEvent.coordinate],
+    //     },
+    //   });
+    // } else {
+    //   this.setState({
+    //     editing: {
+    //       ...editing,
+    //       coordinates: [
+    //         ...editing.coordinates,
+    //         e.nativeEvent.coordinate,
+    //       ],
+    //     },
+    //   });
+    // }
+    this.refs.map.addPointToPoly(this.pkey, e.nativeEvent.coordinate);
   }
 
   render() {
