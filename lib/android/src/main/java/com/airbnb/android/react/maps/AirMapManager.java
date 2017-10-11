@@ -42,6 +42,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   private static final int ADD_POINT_TO_POLY = 8;
   private static final int ADD_POINTS_TO_POLY = 9;
   private static final int REMOVE_POINTS_FROM_POLY = 10;
+  private static final int SET_MAP_INTERACTIVE = 11;
 
   private final Map<String, Integer> MAP_TYPES = MapBuilder.of(
       "standard", GoogleMap.MAP_TYPE_NORMAL,
@@ -269,6 +270,9 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
       case REMOVE_POINTS_FROM_POLY:
         view.removePointsFromPoly(args.getString(0), args.getInt(1));
         break;
+      case SET_MAP_INTERACTIVE:
+        view.map.getUiSettings().setAllGesturesEnabled(args.getBoolean(0));
+        break;
     }
   }
 
@@ -298,14 +302,6 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   @Override
   @Nullable
   public Map<String, Integer> getCommandsMap() {
-    // return MapBuilder.of(
-    //     "animateToRegion", ANIMATE_TO_REGION,
-    //     "animateToCoordinate", ANIMATE_TO_COORDINATE,
-    //     "fitToElements", FIT_TO_ELEMENTS,
-    //     "fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS,
-    //     "fitToCoordinates", FIT_TO_COORDINATES
-    // );
-
     return new HashMap<String, Integer>(){{
       put("animateToRegion", ANIMATE_TO_REGION);
       put("animateToCoordinate", ANIMATE_TO_COORDINATE);
@@ -317,6 +313,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
       put("addPointToPoly", ADD_POINT_TO_POLY);
       put("addPointsToPoly", ADD_POINTS_TO_POLY);
       put("removePointsFromPoly", REMOVE_POINTS_FROM_POLY);
+      put("setMapInteractive", SET_MAP_INTERACTIVE);
     }};
   }
 

@@ -236,10 +236,16 @@ public class AirMapMarker extends AirMapFeature {
           .build();
       logoHolder.setController(controller);
     } else {
-      iconBitmapDescriptor = getBitmapDescriptorByName(uri);
-      if (iconBitmapDescriptor != null) {
-          iconBitmap = BitmapFactory.decodeResource(getResources(), getDrawableResourceByName(uri));
-      }
+      // iconBitmapDescriptor = getBitmapDescriptorByName(uri);
+      // if (iconBitmapDescriptor != null) {
+      //     iconBitmap = BitmapFactory.decodeResource(getResources(), getDrawableResourceByName(uri));
+      // }
+
+      BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inScaled = false;
+      iconBitmap = BitmapFactory.decodeResource(getResources(), getDrawableResourceByName(uri), options);
+      iconBitmapDescriptor = BitmapDescriptorFactory.fromBitmap(iconBitmap);
+
       update();
     }
   }
