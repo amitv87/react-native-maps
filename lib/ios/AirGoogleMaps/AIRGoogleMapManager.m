@@ -29,8 +29,6 @@
 #import <MapKit/MapKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#import "Helper.h"
-
 #define MAX_POLYLINE_LENGTH 100
 
 static NSString *const RCTMapViewKey = @"MapView";
