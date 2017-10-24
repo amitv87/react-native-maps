@@ -24,9 +24,14 @@
 #import "SMCalloutView.h"
 #import "AIRGoogleMapMarker.h"
 #import "RCTConvert+AirMap.h"
+#import "AIRGoogleMapPolyline.h"
 
 #import <MapKit/MapKit.h>
 #import <QuartzCore/QuartzCore.h>
+
+#import "Helper.h"
+
+#define MAX_POLYLINE_LENGTH 100
 
 static NSString *const RCTMapViewKey = @"MapView";
 
@@ -35,7 +40,21 @@ static NSString *const RCTMapViewKey = @"MapView";
 
 @end
 
-@implementation AIRGoogleMapManager
+@interface Poly : NSObject
+
+-(id)initWithColor:(UIColor *)color andWidth:(int)width andMap:(GMSMapView *)map;
+-(void)newLine;
+-(BOOL)checkMax:(BOOL) render;
+-(void)addPoint:(AIRMapCoordinate *)coordinate;
+-(void)addPoints:(NSArray<AIRMapCoordinate *> *)_coordinates;
+-(void)removePoints:(int)count;
+-(void)clear;
+
+@end
+
+@implementation AIRGoogleMapManager{
+  NSMutableDictionary *polys;
+}
 
 RCT_EXPORT_MODULE()
 
@@ -289,4 +308,201 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
   AIRGMSMarker *aMarker = (AIRGMSMarker *)marker;
   [aMarker.fakeMarker didDragMarker:aMarker];
 }
+
+#pragma mark - Custom functions to support Ajjas App
+
+RCT_EXPORT_METHOD(clearPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)key){
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[AIRGoogleMap class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
+    } else {
+      Poly *poly = polys[key];
+      if (poly != NULL)
+        [poly clear];
+
+      [polys removeObjectForKey:key];
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(createPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)key withColor:(NSString *)color withWidth:(int)width){
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[AIRGoogleMap class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
+    } else {
+      NSLog(@"Reciev Color Here as :::: %@",color);
+      UIColor *colr = [Helper colorFromHexString:color];
+      if (polys == nil) {
+        polys = [[NSMutableDictionary alloc] init];
+      }
+      if (polys[key] == NULL) {
+        [polys setObject:[[Poly alloc] initWithColor:colr andWidth:width andMap:view] forKey:key];
+      }
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(addPointToPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)key withRegion:(AIRMapCoordinate *)latlng){
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[AIRGoogleMap class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
+    } else {
+      Poly *poly = polys[key];
+      if (poly != NULL) {
+        [poly addPoint:latlng];
+      }
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(addPointsToPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)key coordinates:(nonnull NSArray<AIRMapCoordinate *> *)coordinates){  
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[AIRGoogleMap class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
+    } else {
+      
+      Poly *poly = polys[key];
+      if (poly != NULL) {
+        [poly addPoints:coordinates];
+      }
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(removePointsFromPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)key withCount:(int)count){
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[AIRGoogleMap class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
+    } else {
+      Poly *poly = polys[key];
+      if (poly != NULL) {
+        [poly removePoints:count];
+      }
+    }
+  }];
+}
+
+@end
+
+#pragma mark - Poly Class
+
+@implementation Poly{
+  NSMutableArray<GMSPolyline *> * polylines;
+  NSMutableArray<GMSMutablePath *> * paths;
+  UIColor *Color;
+  int Width;
+  GMSMapView *Map;
+}
+
+-(id)initWithColor:(UIColor *)color andWidth:(int)width andMap:(GMSMapView *)map{
+  self = [super init];
+  if (self) {
+    polylines = [[NSMutableArray alloc] init];
+    paths = [NSMutableArray new];
+    Color = color;
+    Width = width / 3;
+    Map = map;
+    
+  }
+  return self;
+}
+
+-(void)newLine{
+  GMSMutablePath *path = [GMSMutablePath new];
+  GMSPolyline *polyline = [GMSPolyline polylineWithPath:path];
+  polyline.strokeWidth = Width;
+  polyline.strokeColor = Color;
+  polyline.map = Map;
+  [polylines addObject:polyline];
+  [paths addObject:path];
+}
+
+-(BOOL)checkMax:(BOOL) render{
+  if(polylines.count > 0){
+    GMSPolyline* polyline = polylines[polylines.count - 1];
+    if (polyline.path.count >= MAX_POLYLINE_LENGTH){
+      if (render){
+        [polyline setPath:polyline.path];
+      }
+      [self newLine];
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+-(void)addPoint:(AIRMapCoordinate *)coordinate{
+  [self checkMax:false];
+  if (polylines.count == 0) [self newLine];
+  GMSMutablePath *path = paths[paths.count - 1];
+  [path addCoordinate:coordinate.coordinate];
+  [polylines[polylines.count - 1] setPath:path];
+}
+
+-(void)addPoints:(NSArray<AIRMapCoordinate *> *)_coordinates{
+
+  [self checkMax:false];
+  if (polylines.count == 0) [self newLine];
+  GMSMutablePath *path = paths[paths.count - 1];
+
+  for (AIRMapCoordinate *coordinate in _coordinates) {
+    [path addCoordinate:coordinate.coordinate];
+    if([self checkMax:TRUE]){
+      path = paths[paths.count - 1];
+    }
+  }
+
+  if (path.count > 1) {
+    [polylines[polylines.count - 1] setPath:path];
+  }
+}
+
+-(void)removePoints:(int)count{
+  int numRemovedPoints = 0;
+  int numPolylines = (int)polylines.count - 1;
+
+  for(int i = 0; i <= numPolylines; i++){
+    int index = numPolylines - i;
+    int numPointsToBeRemoved = count - numRemovedPoints;
+
+
+    GMSPolyline *polyline = polylines[index];
+    if(polylines.count <= numPointsToBeRemoved){
+      numRemovedPoints += polylines.count;
+      polyline = nil;
+      polyline.path = nil;
+      [polylines removeObjectAtIndex:index];
+      [paths removeObjectAtIndex:index];
+      // Log.d("removePoints full", "index: " + index + ", numRemovedPoints: " + numRemovedPoints);
+    }
+    else{
+      NSRange range;
+      range.location = 0;
+      range.length = polylines.count -1 - numPointsToBeRemoved;
+
+      polylines = [[polylines subarrayWithRange:range] mutableCopy];
+      paths = [[paths subarrayWithRange:range] mutableCopy];
+      numRemovedPoints += numPointsToBeRemoved;
+      polylines[polylines.count - 1].path=paths[paths.count - 1];
+      // Log.d("removePoints partial", "index: " + index + ", numRemovedPoints: " + numRemovedPoints);
+    }
+    if(numRemovedPoints == count)
+      break;
+  }
+  
+}
+-(void)clear{
+  for (GMSPolyline __strong *polyline in polylines) {
+    polyline.map = nil;
+    polyline = nil;
+  }
+  [polylines removeAllObjects];
+  [paths removeAllObjects];
+}
+
 @end
