@@ -35,6 +35,7 @@ id regionAsJSON(MKCoordinateRegion region) {
 {
   NSMutableArray<UIView *> *_reactSubviews;
   BOOL _initialRegionSet;
+  BOOL _isMapReady;
 }
 
 - (instancetype)init
@@ -47,6 +48,7 @@ id regionAsJSON(MKCoordinateRegion region) {
     _circles = [NSMutableArray array];
     _tiles = [NSMutableArray array];
     _initialRegionSet = false;
+    _isMapReady = false;
   }
   return self;
 }
@@ -156,6 +158,8 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)didFinishTileRendering {
+    if(!_isMapReady) _isMapReady = true;
+    else return;
     if (self.onMapReady) self.onMapReady(@{});
 }
 
