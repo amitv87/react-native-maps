@@ -293,7 +293,8 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
         "onMarkerDragStart", MapBuilder.of("registrationName", "onMarkerDragStart"),
         "onMarkerDrag", MapBuilder.of("registrationName", "onMarkerDrag"),
         "onMarkerDragEnd", MapBuilder.of("registrationName", "onMarkerDragEnd"),
-        "onPanDrag", MapBuilder.of("registrationName", "onPanDrag")
+        "onPanDrag", MapBuilder.of("registrationName", "onPanDrag"),
+        "onCameraMoveStarted", MapBuilder.of("registrationName", "onCameraMoveStarted")
     ));
 
     return map;

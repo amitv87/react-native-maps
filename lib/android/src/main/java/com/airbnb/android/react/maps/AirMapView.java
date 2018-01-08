@@ -295,6 +295,15 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       }
     });
 
+    map.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
+      @Override
+      public void onCameraMoveStarted(int i) {
+        WritableNativeMap event = new WritableNativeMap();
+        event.putInt("reason", i);
+        manager.pushEvent(context, view, "onCameraMoveStarted", event);
+      }
+    });
+
     // We need to be sure to disable location-tracking when app enters background, in-case some
     // other module
     // has acquired a wake-lock and is controlling location-updates, otherwise, location-manager
