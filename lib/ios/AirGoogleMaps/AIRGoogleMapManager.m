@@ -77,6 +77,7 @@ RCT_EXPORT_VIEW_PROPERTY(showsUserLocation, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsMyLocationButton, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(customMapStyleString, NSString)
 RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onCameraMoveStarted, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
@@ -271,6 +272,11 @@ RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber *)reactTag
 - (void)mapView:(GMSMapView *)mapView didChangeCameraPosition:(GMSCameraPosition *)position {
   AIRGoogleMap *googleMapView = (AIRGoogleMap *)mapView;
   [googleMapView didChangeCameraPosition:position];
+}
+
+-(void)mapView:(GMSMapView *)mapView willMove:(BOOL)gesture{
+    AIRGoogleMap *googleMapView = (AIRGoogleMap *)mapView;
+    [googleMapView mapViewWillMove:gesture];
 }
 
 - (void)mapView:(GMSMapView *)mapView idleAtCameraPosition:(GMSCameraPosition *)position {
