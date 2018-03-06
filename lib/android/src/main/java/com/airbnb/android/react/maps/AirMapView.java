@@ -692,9 +692,14 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
   }
 
   public void animateToRegion(LatLngBounds bounds, int duration) {
-    if (map != null) {
-      startMonitoringRegion();
-      map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0), duration, null);
+    try {
+      if (map != null) {
+        startMonitoringRegion();
+        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0), duration, null);
+      }
+    }
+    catch (Exception e){
+      Log.e("AirMapView", "animateToRegion", e);
     }
   }
 
