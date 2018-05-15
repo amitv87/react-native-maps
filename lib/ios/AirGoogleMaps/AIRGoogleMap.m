@@ -224,7 +224,6 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)mapViewWillMove:(BOOL)gesture{
-    NSLog(@"map willMove %d", gesture);
     id event = @{@"reason" :gesture ? @1 : @0 };
     if (self.onCameraMoveStarted) self.onCameraMoveStarted(event);
 }

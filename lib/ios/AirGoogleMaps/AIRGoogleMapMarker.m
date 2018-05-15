@@ -151,6 +151,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (void)setCoordinate:(CLLocationCoordinate2D)coordinate {
   _realMarker.position = coordinate;
+  [self updateMarker];
 }
 
 - (CLLocationCoordinate2D)coordinate {
@@ -158,7 +159,8 @@ CGRect unionRect(CGRect a, CGRect b) {
 }
 
 - (void)setRotation:(CLLocationDegrees)rotation {
-    _realMarker.rotation = rotation;
+  _realMarker.rotation = rotation;
+  [self updateMarker];
 }
 
 - (CLLocationDegrees)rotation {
@@ -184,6 +186,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 - (void)setOpacity:(double)opacity
 {
   _realMarker.opacity = opacity;
+  [self updateMarker];
 }
 
 - (void)setImageSrc:(NSString *)imageSrc
@@ -197,6 +200,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 
   if (!_imageSrc) {
     if (_iconImageView) [_iconImageView removeFromSuperview];
+    [self updateMarker];
     return;
   }
 
@@ -233,7 +237,7 @@ CGRect unionRect(CGRect a, CGRect b) {
                                                                    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
 
                                                                    // TODO: w,h or pixel density could be a prop.
-                                                                   float density = 1;
+                                                                   float density = 0.8;
                                                                    float w = image.size.width/density;
                                                                    float h = image.size.height/density;
                                                                    CGRect bounds = CGRectMake(0, 0, w, h);
@@ -250,12 +254,15 @@ CGRect unionRect(CGRect a, CGRect b) {
 
                                                                    _iconImageView = imageView;
                                                                    [self iconViewInsertSubview:imageView atIndex:0];
+
+                                                                   [self updateMarker];
                                                                  });
                                                                }];
 }
 
 - (void)setTitle:(NSString *)title {
   _realMarker.title = [title copy];
+  [self updateMarker];
 }
 
 - (NSString *)title {
@@ -264,6 +271,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (void)setSubtitle:(NSString *)subtitle {
   _realMarker.snippet = subtitle;
+  [self updateMarker];
 }
 
 - (NSString *)subtitle {
@@ -273,11 +281,13 @@ CGRect unionRect(CGRect a, CGRect b) {
 - (void)setPinColor:(UIColor *)pinColor {
   _pinColor = pinColor;
   _realMarker.icon = [GMSMarker markerImageWithColor:pinColor];
+  [self updateMarker];
 }
 
 - (void)setAnchor:(CGPoint)anchor {
   _anchor = anchor;
   _realMarker.groundAnchor = anchor;
+  [self updateMarker];
 }
 
 
@@ -285,6 +295,7 @@ CGRect unionRect(CGRect a, CGRect b) {
 {
   _zIndex = zIndex;
   _realMarker.zIndex = (int)zIndex;
+  [self updateMarker];
 }
 
 - (void)setDraggable:(BOOL)draggable {
@@ -293,6 +304,13 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (BOOL)draggable {
   return _realMarker.draggable;
+}
+
+-(void)updateMarker{
+  _realMarker.tracksViewChanges = YES;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC * 133), dispatch_get_main_queue(), ^(void){
+    _realMarker.tracksViewChanges = NO;
+  });
 }
 
 @end
