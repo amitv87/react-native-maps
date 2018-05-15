@@ -200,7 +200,10 @@ RCT_EXPORT_METHOD(fitToCoordinates:(nonnull NSNumber *)reactTag
       CGFloat bottom = [RCTConvert CGFloat:edgePadding[@"bottom"]];
       CGFloat left = [RCTConvert CGFloat:edgePadding[@"left"]];
 
+      [CATransaction begin];
+      [CATransaction setAnimationDuration:1.5];
       [mapView animateWithCameraUpdate:[GMSCameraUpdate fitBounds:bounds withEdgeInsets:UIEdgeInsetsMake(top, left, bottom, right)]];
+      [CATransaction commit];
     }
   }];
 }
