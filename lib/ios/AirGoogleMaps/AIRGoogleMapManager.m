@@ -50,9 +50,7 @@ static NSString *const RCTMapViewKey = @"MapView";
 
 @end
 
-@implementation AIRGoogleMapManager{
-  NSMutableDictionary *polys;
-}
+@implementation AIRGoogleMapManager
 
 RCT_EXPORT_MODULE()
 
@@ -60,6 +58,7 @@ RCT_EXPORT_MODULE()
 {
   AIRGoogleMap *map = [AIRGoogleMap new];
   map.delegate = self;
+  map.polys = [NSMutableDictionary new];
   return map;
 }
 
@@ -324,11 +323,10 @@ RCT_EXPORT_METHOD(clearPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)key
     if (![view isKindOfClass:[AIRGoogleMap class]]) {
       RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
     } else {
-      Poly *poly = polys[key];
-      if (poly != NULL)
-        [poly clear];
-
-      [polys removeObjectForKey:key];
+      AIRGoogleMap* map = (AIRGoogleMap*) view;
+      Poly *poly = map.polys[key];
+      if (poly != NULL) [poly clear];
+      [map.polys removeObjectForKey:key];
     }
   }];
 }
@@ -339,14 +337,9 @@ RCT_EXPORT_METHOD(createPoly:(nonnull NSNumber *)reactTag withKey:(NSString *)ke
     if (![view isKindOfClass:[AIRGoogleMap class]]) {
       RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
     } else {
-      NSLog(@"Reciev Color Here as :::: %@",color);
+      AIRGoogleMap* map = (AIRGoogleMap*) view;
       UIColor *colr = [self colorFromHexString:color];
-      if (polys == nil) {
-        polys = [[NSMutableDictionary alloc] init];
-      }
-      if (polys[key] == NULL) {
-        [polys setObject:[[Poly alloc] initWithColor:colr andWidth:width andMap:view] forKey:key];
-      }
+      if (map.polys[key] == NULL) [map.polys setObject:[[Poly alloc] initWithColor:colr andWidth:width andMap:view] forKey:key];
     }
   }];
 }
@@ -357,10 +350,9 @@ RCT_EXPORT_METHOD(addPointToPoly:(nonnull NSNumber *)reactTag withKey:(NSString 
     if (![view isKindOfClass:[AIRGoogleMap class]]) {
       RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
     } else {
-      Poly *poly = polys[key];
-      if (poly != NULL) {
-        [poly addPoint:latlng];
-      }
+      AIRGoogleMap* map = (AIRGoogleMap*) view;
+      Poly *poly = map.polys[key];
+      if (poly != NULL) [poly addPoint:latlng];
     }
   }];
 }
@@ -371,11 +363,9 @@ RCT_EXPORT_METHOD(addPointsToPoly:(nonnull NSNumber *)reactTag withKey:(NSString
     if (![view isKindOfClass:[AIRGoogleMap class]]) {
       RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
     } else {
-      
-      Poly *poly = polys[key];
-      if (poly != NULL) {
-        [poly addPoints:coordinates];
-      }
+      AIRGoogleMap* map = (AIRGoogleMap*) view;
+      Poly *poly = map.polys[key];
+      if (poly != NULL) [poly addPoints:coordinates];
     }
   }];
 }
@@ -386,10 +376,9 @@ RCT_EXPORT_METHOD(removePointsFromPoly:(nonnull NSNumber *)reactTag withKey:(NSS
     if (![view isKindOfClass:[AIRGoogleMap class]]) {
       RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
     } else {
-      Poly *poly = polys[key];
-      if (poly != NULL) {
-        [poly removePoints:count];
-      }
+      AIRGoogleMap* map = (AIRGoogleMap*) view;
+      Poly *poly = map.polys[key];
+      if (poly != NULL) [poly removePoints:count];
     }
   }];
 }
