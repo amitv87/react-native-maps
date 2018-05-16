@@ -36,6 +36,9 @@ id regionAsJSON(MKCoordinateRegion region) {
   NSMutableArray<UIView *> *_reactSubviews;
   BOOL _initialRegionSet;
   BOOL _isMapReady;
+  
+  MKCoordinateRegion _initialRegion;
+  BOOL _didMoveToWindow;
 }
 
 - (instancetype)init
@@ -146,9 +149,21 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 #pragma clang diagnostic pop
 
+- (void)didMoveToWindow {
+  if (_didMoveToWindow) return;
+  _didMoveToWindow = true;
+
+  if (_initialRegion.span.latitudeDelta != 0.0 &&
+    _initialRegion.span.longitudeDelta != 0.0) {
+    self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:_initialRegion];
+  }
+  [super didMoveToWindow];
+}
+
 - (void)setInitialRegion:(MKCoordinateRegion)initialRegion {
   if (_initialRegionSet) return;
-  _initialRegionSet = true;
+  _initialRegion = initialRegion;
+  _initialRegionSet = _didMoveToWindow;
   self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:initialRegion];
 }
 
