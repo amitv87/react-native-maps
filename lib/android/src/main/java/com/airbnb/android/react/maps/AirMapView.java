@@ -703,6 +703,20 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     }
   }
 
+  public void moveCameraWithBrg(LatLng latlng,int zoom, int tilt, float brg) {
+    try {
+      if (map != null) {
+        startMonitoringRegion();
+        CameraPosition cp = CameraPosition.builder().target(latlng).tilt(tilt).bearing(brg).zoom(zoom).build();
+        CameraUpdate cu = CameraUpdateFactory.newCameraPosition(cp);
+        map.animateCamera(cu);
+      }
+    }
+    catch (Exception e){
+      Log.e("AirMapView", "animateToRegion", e);
+    }
+  }
+
   public void animateToCoordinate(LatLng coordinate, int duration) {
     if (map != null) {
       startMonitoringRegion();
