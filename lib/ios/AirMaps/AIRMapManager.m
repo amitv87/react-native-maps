@@ -142,6 +142,30 @@ RCT_EXPORT_METHOD(animateToRegion:(nonnull NSNumber *)reactTag
     }];
 }
 
+RCT_EXPORT_METHOD(moveCameraWithBrg:(nonnull NSNumber *)reactTag
+                  withRegion:(MKCoordinateRegion)region
+                  withZoom:(CGFloat)zoom
+                  withAngle:(double)angle
+                  withBearing:(CGFloat)bearing)
+{
+    [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+        id view = viewRegistry[reactTag];
+        if (![view isKindOfClass:[AIRMap class]]) {
+            RCTLogError(@"Invalid view returned from registry, expecting AIRMap, got: %@", view);
+        } else {
+            AIRMap *mapView = (AIRMap *)view;
+            MKMapCamera *mapCamera = [[mapView camera] copy];
+            [mapCamera setPitch:angle];
+            [mapCamera setHeading:bearing];
+
+            [AIRMap animateWithDuration:300/1000 animations:^{
+                [(AIRMap *)view setRegion:region animated:YES];
+                [mapView setCamera:mapCamera animated:YES];
+            }];
+        }
+    }];
+}
+
 RCT_EXPORT_METHOD(animateToCoordinate:(nonnull NSNumber *)reactTag
         withRegion:(CLLocationCoordinate2D)latlng
         withDuration:(CGFloat)duration)
