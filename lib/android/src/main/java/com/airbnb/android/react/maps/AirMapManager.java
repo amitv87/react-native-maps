@@ -43,6 +43,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   private static final int ADD_POINTS_TO_POLY = 9;
   private static final int REMOVE_POINTS_FROM_POLY = 10;
   private static final int SET_MAP_INTERACTIVE = 11;
+  private static final int MOVE_CAMERA_WITH_BRG = 12;
 
   private final Map<String, Integer> MAP_TYPES = MapBuilder.of(
       "standard", GoogleMap.MAP_TYPE_NORMAL,
@@ -212,6 +213,9 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
     Double lngDelta;
     Double latDelta;
     ReadableMap region;
+    Float brg;
+    int tilt;
+    int zoom;
 
     switch (commandId) {
       case ANIMATE_TO_REGION:
@@ -226,6 +230,17 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
             new LatLng(lat + latDelta / 2, lng + lngDelta / 2)  // northeast
         );
         view.animateToRegion(bounds, duration);
+        break;
+
+      case MOVE_CAMERA_WITH_BRG:
+        region = args.getMap(0);
+        zoom = args.getInt(1);
+        tilt = args.getInt(2);
+        brg = (float)args.getDouble(3);
+        lat = region.getDouble("latitude");
+        lng = region.getDouble("longitude");
+        LatLng latlng = new LatLng(lat, lng);
+        view.moveCameraWithBrg(latlng, zoom, tilt, brg);
         break;
 
       case ANIMATE_TO_COORDINATE:
@@ -305,6 +320,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   public Map<String, Integer> getCommandsMap() {
     return new HashMap<String, Integer>(){{
       put("animateToRegion", ANIMATE_TO_REGION);
+      put("moveCameraWithBrg", MOVE_CAMERA_WITH_BRG);
       put("animateToCoordinate", ANIMATE_TO_COORDINATE);
       put("fitToElements", FIT_TO_ELEMENTS);
       put("fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS);
